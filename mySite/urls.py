@@ -9,7 +9,7 @@ urlpatterns = patterns('',
     # url function takes two argumnets: a regex, and a view, 
     # and two optionals: kwargs and name
 
-    url(r'^polls/', include('polls.urls')),
+    url(r'^polls/', include('polls.urls', namespace='polls')),
     url(r'^admin/', include(admin.site.urls)),
 )
 
