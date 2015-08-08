@@ -3,6 +3,7 @@ from django.http import HttpResponse, Http404, HttpResponseRedirect
 from django.core.urlresolvers import reverse
 from django.template import RequestContext, loader
 from django.views import generic
+from django.utils import timezone
 
 from polls.models import Choice, Question
 
@@ -30,17 +31,26 @@ class IndexView(generic.ListView):
   context_object_name = 'latest_question_list'
 
   def get_queryset(self):
-    """Return the last five published questions."""
-    return Question.objects.order_by('-pub_date')[:5]
+    """Return the last five published questions (not future q's)."""
+    return Question.objects.filter(
+      pub_date__lte=timezone.now()
+    ).order_by('-pub_date')[:5]
 
 class DetailView(generic.DetailView):
   model = Question
   # use our template instead of auto-generated 'polls/question_detail.html'
   template_name = 'polls/detail.html'
+  def get_queryset(self):
+    """
+    Excludes questions that are in the future.
+    """
+    return Question.objects.filter(pub_date__lte=timezone.now())
 
 class ResultsView(generic.DetailView):
   model = Question
   template_name = 'polls/results.html'
+  def get_queryset(self):
+    return Question.objects.filter(pub_date__lte=timezone.now())
 
 def vote(request, question_id):
   p = get_object_or_404(Question, pk=question_id)
