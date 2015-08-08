@@ -30,5 +30,11 @@ class QuestionAdmin(admin.ModelAdmin):
       'classes': ['collapse']}),
     ]
   inlines = [ChoiceInline]
+  # will show more fields than just the STR
+  list_display = ('question_text', 'pub_date', 'was_published_recently')
+  # adds a filter using list filter
+  list_filter = ['pub_date']
+  # allows searching by question
+  search_fields = ['question_text']
 
 admin.site.register(Question, QuestionAdmin)
