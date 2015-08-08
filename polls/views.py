@@ -2,11 +2,11 @@ from django.shortcuts import render, get_object_or_404
 from django.http import HttpResponse, Http404, HttpResponseRedirect
 from django.core.urlresolvers import reverse
 from django.template import RequestContext, loader
+from django.views import generic
 
 from polls.models import Choice, Question
 
-# Create your views here.
-
+"""
 def index(request):
   # return HttpResponse("Hello, world. You're at the polls index")
   latest_question_list = Question.objects.order_by('-pub_date')[:5]
@@ -22,6 +22,41 @@ def index(request):
   # return render(request, 'polls/index.html', context)
 
   # render(requestObject, templateName, dictionary_context) => httpresponse object 
+"""
+
+class IndexView(generic.ListView):
+  template_name = 'polls/index.html'
+  # overriding context object name instead of question_list, which is the default
+  context_object_name = 'latest_question_list'
+
+  def get_queryset(self):
+    """Return the last five published questions."""
+    return Question.objects.order_by('-pub_date')[:5]
+
+class DetailView(generic.DetailView):
+  model = Question
+  # use our template instead of auto-generated 'polls/question_detail.html'
+  template_name = 'polls/detail.html'
+
+class ResultsView(generic.DetailView):
+  model = Question
+  template_name = 'polls/results.html'
+
+def vote(request, question_id):
+  p = get_object_or_404(Question, pk=question_id)
+  try:
+    selected_choice = p.choice_set.get(pk=request.POST['choice'])
+  except (KeyError, Choice.DoesNotExist):
+    return render(request, 'polls/detail.html', {
+                  'question' : p,
+                  'error_message' : "You didn't select a choice."
+                  })
+  else:
+    selected_choice.votes += 1
+    selected_choice.save()
+    return HttpResponseRedirect(reverse('polls:results', args=(p.id,)))
+
+"""
 
 def detail(request, question_id):
   #try:
@@ -53,3 +88,5 @@ def vote(request, question_id):
     # always return an httprespsonseredirect after dealing with POST data successfully
     # prevents data from being posted twice if the user hits 'back'
     return HttpResponseRedirect(reverse('polls:results', args=(p.id,)))
+
+"""
